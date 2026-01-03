@@ -43,13 +43,15 @@ from vnpy_websocket import WebsocketClient
 UTC_TZ = ZoneInfo("UTC")
 
 # Real server hosts
-REAL_REST_HOST: str = "https://fapi.binance.com"
+# REAL_REST_HOST: str = "https://fapi.binance.com"
+REAL_REST_HOST: str = "https://api.binance.com"
 REAL_TRADE_HOST: str = "wss://ws-fapi.binance.com/ws-fapi/v1"
 REAL_USER_HOST: str = "wss://fstream.binance.com/ws/"
 REAL_DATA_HOST: str = "wss://fstream.binance.com/stream"
 
 # Testnet server hosts
-TESTNET_REST_HOST: str = "https://testnet.binancefuture.com"
+# TESTNET_REST_HOST: str = "https://testnet.binancefuture.com"
+TESTNET_REST_HOST: str = "https://testnet.binance.vision/api"
 TESTNET_TRADE_HOST: str = "wss://testnet.binancefuture.com/ws-fapi/v1"
 TESTNET_USER_HOST: str = "wss://stream.binancefuture.com/ws/"
 TESTNET_DATA_HOST: str = "wss://stream.binancefuture.com/stream"
@@ -386,6 +388,9 @@ class RestApi(RestClient):
         Returns:
             Request: Modified request with authentication parameters
         """
+        if request.path in ["/api/v3/time","/api/v3/exchangeInfo"]:
+            return request
+
         # Construct path with query parameters if they exist
         if request.params:
             path: str = request.path + "?" + urllib.parse.urlencode(request.params)
@@ -467,7 +472,8 @@ class RestApi(RestClient):
         This function sends a request to get the exchange server time,
         which is used to calculate the local time offset for timestamp synchronization.
         """
-        path: str = "/fapi/v1/time"
+        # path: str = "/fapi/v1/time"
+        path: str = "/api/v3/time"
 
         self.add_request(
             "GET",
@@ -482,7 +488,7 @@ class RestApi(RestClient):
         This function sends a request to get the account balance information,
         including wallet balance, available balance, and margin.
         """
-        path: str = "/fapi/v3/account"
+        path: str = "/api/v3/account"
 
         self.add_request(
             method="GET",
@@ -497,7 +503,7 @@ class RestApi(RestClient):
         This function sends a request to get current position data,
         including position amount, entry price, and unrealized profit/loss.
         """
-        path: str = "/fapi/v3/positionRisk"
+        path: str = "/api/v3/positionRisk"
 
         self.add_request(
             method="GET",
@@ -512,7 +518,7 @@ class RestApi(RestClient):
         This function sends a request to get all active orders
         that have not been fully filled or cancelled.
         """
-        path: str = "/fapi/v1/openOrders"
+        path: str = "/api/v3/openOrders"
 
         self.add_request(
             method="GET",
@@ -528,7 +534,7 @@ class RestApi(RestClient):
         including all available trading instruments, their precision,
         and trading rules.
         """
-        path: str = "/fapi/v1/exchangeInfo"
+        path: str = "/api/v3/exchangeInfo"
 
         self.add_request(
             method="GET",
@@ -543,7 +549,8 @@ class RestApi(RestClient):
         This function sends a request to create a listen key which is
         required to establish a user data websocket connection.
         """
-        path: str = "/fapi/v1/listenKey"
+        # path: str = "/fapi/v1/listenKey"
+        path: str = "/api/v3/listenKey"
 
         self.add_request(
             method="POST",
@@ -610,7 +617,7 @@ class RestApi(RestClient):
             data: Response data from the server
             request: Original request object
         """
-        for asset in data["assets"]:
+        for asset in data["balances"]:
             account: AccountData = AccountData(
                 accountid=asset["asset"],
                 balance=float(asset["walletBalance"]),
@@ -716,7 +723,8 @@ class RestApi(RestClient):
                     min_volume = float(f["minQty"])
                     max_volume = float(f["maxQty"])
 
-            product: Product = PRODUCT_BINANCE2VT.get(d["contractType"], Product.SWAP)
+            # product: Product = PRODUCT_BINANCE2VT.get(d["contractType"], Product.SWAP)
+            product: Product = Product.SWAP
             if product == Product.SWAP:
                 symbol: str = d["symbol"] + "_SWAP_BINANCE"
             else:
@@ -730,7 +738,7 @@ class RestApi(RestClient):
                 size=1,
                 min_volume=min_volume,
                 max_volume=max_volume,
-                product=PRODUCT_BINANCE2VT.get(d["contractType"], Product.SWAP),
+                product=product,
                 net_position=True,
                 history_data=True,
                 gateway_name=self.gateway_name,
