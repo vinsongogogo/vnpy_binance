@@ -14,7 +14,7 @@ def main() -> None:
 
     event_engine = EventEngine()
     main_engine = MainEngine(event_engine)
-    main_engine.add_gateway(BinanceLinearGateway)
+    main_engine.add_gateway(BinanceLinearGateway,gateway_name="binance")
 
     main_engine.add_app(DataManagerApp)
 

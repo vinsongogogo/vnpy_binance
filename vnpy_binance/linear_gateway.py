@@ -620,8 +620,8 @@ class RestApi(RestClient):
         for asset in data["balances"]:
             account: AccountData = AccountData(
                 accountid=asset["asset"],
-                balance=float(asset["walletBalance"]),
-                frozen=float(asset["maintMargin"]),
+                balance=float(asset["free"]),
+                frozen=float(asset["locked"]),
                 gateway_name=self.gateway_name
             )
 
