@@ -388,7 +388,7 @@ class RestApi(RestClient):
         Returns:
             Request: Modified request with authentication parameters
         """
-        if request.path in ["/api/v3/time","/api/v3/exchangeInfo"]:
+        if request.path in ["/api/v3/time","/api/v3/exchangeInfo","/api/v3/klines"]:
             return request
 
         # Construct path with query parameters if they exist
@@ -814,7 +814,7 @@ class RestApi(RestClient):
 
         # Prepare history list
         history: list[BarData] = []
-        limit: int = 1500
+        limit: int = 1500000000
 
         # Convert start time to milliseconds
         start_time: int = int(datetime.timestamp(req.start))
@@ -828,7 +828,7 @@ class RestApi(RestClient):
             }
 
             params["startTime"] = start_time * 1000
-            path: str = "/fapi/v1/klines"
+            path: str = "/api/v3/klines"
             if req.end:
                 end_time = int(datetime.timestamp(req.end))
                 params["endTime"] = end_time * 1000     # Convert to milliseconds
@@ -883,7 +883,7 @@ class RestApi(RestClient):
 
                 # Break the loop if the latest data received
                 if (
-                    len(data) < limit
+                    len(data) > limit
                     or (req.end and end >= req.end)
                 ):
                     break
